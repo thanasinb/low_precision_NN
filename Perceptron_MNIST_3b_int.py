@@ -9,14 +9,21 @@ import numpy as np
 import time
 # import matplotlib.pyplot as plt
 
+max_value=7
+max_start_value=3
+
 class NeuralNetwork:
     def __init__(self, num_input_layer, num_hidden_layer, num_output_layer):
         self.hidden_weights = np.random.uniform(-1, 1, (num_hidden_layer + 1, num_input_layer  + 1))
         self.output_weights = np.random.uniform(-1, 1, (num_output_layer, num_hidden_layer + 1))
-        
+        self.hidden_weights = np.array([np.round(x*max_start_value, 0) for x in self.hidden_weights]).astype(float)
+        self.output_weights = np.array([np.round(x*max_start_value, 0) for x in self.output_weights]).astype(float)
+
 def feedForward (inputs, weights):
     dot_product = np.dot(weights, inputs)
+    # dot_product = (dot_product/np.amax(dot_product))*5
     result = sigmoid(dot_product)
+    result = np.round(result*max_value, 0)
     return result
 
 def sigmoid (x):
@@ -73,16 +80,17 @@ test_images, test_labels = loadMNIST("t10k")
 
 ## PREPARE NN INPUT
 set_input = np.array([np.reshape(item,(784, 1)) for item in train_images])
-set_input = set_input/np.amax(set_input)
+set_input = np.round(max_value*(set_input/np.amax(set_input)), 0)
 number_input = set_input.shape[0]
 set_answer = np.zeros((set_input.shape[0], 10, 1))
 set_answer[range(set_answer.shape[0]), train_labels]=1
+set_answer = set_answer*max_value
 
 ## SET NN PARAMETERS
 nn = NeuralNetwork (784, 300, 10)
-learning_rate = 0.1
+learning_rate = 0.01
 epoch = 10000
-round_print=1000
+round_print = 1000
 count_correct = 0
 count_error = 0
 
@@ -90,7 +98,7 @@ count_error = 0
 for i in range(epoch):
     ## FEEDFORWARD
     input = set_input[i%number_input]
-    input = np.concatenate((input, [[1]]), axis=0)
+    input = np.concatenate((input, [[max_value]]), axis=0)
     
     result_hidden = feedForward(input, nn.hidden_weights)
     y_guess = feedForward(result_hidden, nn.output_weights)
