@@ -27,13 +27,14 @@ lut=np.array([[0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   
          [0,   3,	4,	 5,	  6,   7,	8,	 9,	  9,   10,  11,  12,  12,  13,  14,  15]])
 
 lut_neg=lut-8
+max_value=7
 
 class NeuralNetwork:
     def __init__(self, num_input_layer, num_hidden_layer, num_output_layer):
         self.hidden_weights = np.random.uniform(-1, 1, (num_hidden_layer + 1, num_input_layer  + 1))
         self.output_weights = np.random.uniform(-1, 1, (num_output_layer, num_hidden_layer + 1))
-        self.hidden_weights = np.array([np.round(x*7, 0) for x in self.hidden_weights]).astype(int)
-        self.output_weights = np.array([np.round(x*7, 0) for x in self.output_weights]).astype(int)
+        self.hidden_weights = np.array([np.round(x*max_value, 0) for x in self.hidden_weights]).astype(int)
+        self.output_weights = np.array([np.round(x*max_value, 0) for x in self.output_weights]).astype(int)
         
 def feedForward (inputs, weights):
     # dot_product = np.dot(weights, inputs)
@@ -49,11 +50,11 @@ def feedForward (inputs, weights):
                 product_B = inputs[v][i]
                 # product += lut[product_A][product_B]
                 product += (product_A*product_B)
-            product_normalise = product/29.4 # max = 5 for sigmoid
+            product_normalise = 5*(product/(len(inputs)*max_value*max_value))
             w_row.append(product_normalise)
         dot_product.append(w_row)
 
-    result = sigmoid(np.array(dot_product))*7
+    result = sigmoid(np.array(dot_product))*max_value
     result = np.round(result).astype(int)
     # result = np.array(dot_product)
 
@@ -108,7 +109,7 @@ set_input=np.array([np.matrix('0; 0'),np.matrix('0; 1'),np.matrix('1; 0'),np.mat
 set_answer = np.array([[0], [1], [1], [0]])
 # set_input = set_input*15
 # set_answer = set_answer*15
-Logic_1 = 7
+Logic_1 = max_value
 Logic_1n = Logic_1*(-1)
 Logic_0 = 0
 set_input[set_input==1]=Logic_1
@@ -120,7 +121,7 @@ number_input = set_input.shape[0]
 number_answer = set_answer.shape[0]
 
 ## SET NN PARAMETERS
-nn = NeuralNetwork (2, 6, 1)
+nn = NeuralNetwork (2, 4, 1)
 learning_rate_hidden = 0.05
 learning_rate_output = 0.05
 learning_rate = 0.05
