@@ -9,8 +9,10 @@ import numpy as np
 import time
 # import matplotlib.pyplot as plt
 
-max_value=7
-max_start_value=3
+no_bits=4
+max_value=(2**no_bits)-1
+min_value=-max_value-1
+max_start_value=1
 
 class NeuralNetwork:
     def __init__(self, num_input_layer, num_hidden_layer, num_output_layer):
@@ -22,15 +24,19 @@ class NeuralNetwork:
 def feedForward (inputs, weights):
     dot_product = np.dot(weights, inputs)
     # dot_product = (dot_product/np.amax(dot_product))*5
-    result = sigmoid(dot_product)
-    result = np.round(result*max_value, 0)
+    # result = sigmoid(dot_product)
+    # result = np.round(result, 0)
+
+    result = ReLU(dot_product)
+    result = np.round(result/np.amax(result), 0)
     return result
 
 def sigmoid (x):
     return 1/(1 + np.exp(-x))
 
 def dSigmoid (x):
-    return np.multiply (x, (1-x))
+    ds = np.multiply (x, (1-x))
+    return ds
 
 def ReLU (x):
     return np.maximum(0,x)
@@ -80,15 +86,15 @@ test_images, test_labels = loadMNIST("t10k")
 
 ## PREPARE NN INPUT
 set_input = np.array([np.reshape(item,(784, 1)) for item in train_images])
-set_input = np.round(max_value*(set_input/np.amax(set_input)), 0)
+set_input = np.round(set_input/np.amax(set_input), 0)
 number_input = set_input.shape[0]
 set_answer = np.zeros((set_input.shape[0], 10, 1))
 set_answer[range(set_answer.shape[0]), train_labels]=1
-set_answer = set_answer*max_value
+set_answer = set_answer
 
 ## SET NN PARAMETERS
 nn = NeuralNetwork (784, 300, 10)
-learning_rate = 0.01
+learning_rate = 1
 epoch = 10000
 round_print = 1000
 count_correct = 0
@@ -98,7 +104,7 @@ count_error = 0
 for i in range(epoch):
     ## FEEDFORWARD
     input = set_input[i%number_input]
-    input = np.concatenate((input, [[max_value]]), axis=0)
+    input = np.concatenate((input, [[1]]), axis=0)
     
     result_hidden = feedForward(input, nn.hidden_weights)
     y_guess = feedForward(result_hidden, nn.output_weights)
@@ -106,10 +112,12 @@ for i in range(epoch):
     ## BACKPROPAGATION
     y_answer = set_answer[i%number_input]
     output_error = y_answer - y_guess
-    output_delta = np.dot(learning_rate * np.multiply(dSigmoid(y_guess), output_error), result_hidden.T)
+    output_delta = np.dot(learning_rate * np.multiply(dReLU(y_guess), output_error), result_hidden.T)
+    output_delta = np.round(output_delta/np.amax(output_delta), 0)
     
     hidden_error = np.dot(nn.output_weights.T, output_error)
-    hidden_delta = np.dot(learning_rate * np.multiply(dSigmoid(result_hidden), hidden_error), input.T)
+    hidden_delta = np.dot(learning_rate * np.multiply(dReLU(result_hidden), hidden_error), input.T)
+    hidden_delta = np.round(hidden_delta / np.amax(hidden_delta), 0)
     
     nn.output_weights = np.add(nn.output_weights, output_delta)
     nn.hidden_weights = np.add(nn.hidden_weights, hidden_delta)
