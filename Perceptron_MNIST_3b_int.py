@@ -31,7 +31,9 @@ def feedForward(inputs, weights):
     # result = np.round(result, 0)
 
     result = ReLU(dot_product)
-    result = np.round(result / np.amax(result), 0)
+    result_max_abs = np.amax(np.absolute(result))
+    if(result_max_abs!=0):
+        result = np.round(result / result_max_abs, 0)
     return result
 
 
@@ -125,11 +127,15 @@ for i in range(epoch):
     y_answer = set_answer[i % number_input]
     output_error = y_answer - y_guess
     output_delta = np.dot(learning_rate * np.multiply(dReLU(y_guess), output_error), result_hidden.T)
-    output_delta = np.round(output_delta / np.amax(output_delta), 0)
+    output_max_abs = np.amax(np.absolute(output_delta))
+    if output_max_abs!=0:
+        output_delta = np.round(output_delta / output_max_abs, 0)
 
     hidden_error = np.dot(nn.output_weights.T, output_error)
     hidden_delta = np.dot(learning_rate * np.multiply(dReLU(result_hidden), hidden_error), input.T)
-    hidden_delta = np.round(hidden_delta / np.amax(hidden_delta), 0)
+    hidden_max_abs = np.amax(np.absolute(hidden_delta))
+    if hidden_max_abs!=0:
+        hidden_delta = np.round(hidden_delta / hidden_max_abs, 0)
 
     nn.output_weights = np.add(nn.output_weights, output_delta)
     nn.hidden_weights = np.add(nn.hidden_weights, hidden_delta)
