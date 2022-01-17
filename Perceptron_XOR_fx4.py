@@ -89,10 +89,6 @@ for i in range(epoch):
     else:
         num_y_guess = Logic_0()
 
-    ## NMIST CALCULATE ACCURACY
-    # num_y_answer = np.argmax(y_answer, axis=0)
-    # num_y_guess = np.argmax(y_guess, axis=0)
-
     if (num_y_answer == num_y_guess):
         count_correct += 1
     else:
@@ -110,11 +106,6 @@ for i in range(epoch):
         nn.output_weights = fxp(output_weights_real, signed=True, n_word=word, n_frac=frac, rounding='around')
         nn.hidden_weights = fxp(hidden_weights_real, signed=True, n_word=word, n_frac=frac, rounding='around')
 
-        # nn.output_weights[nn.output_weights>Logic_1 ]=Logic_1
-        # nn.output_weights[nn.output_weights<Logic_1n]=Logic_1n
-        # nn.hidden_weights[nn.hidden_weights>Logic_1 ]=Logic_1
-        # nn.hidden_weights[nn.hidden_weights<Logic_1n]=Logic_1n
-
     if (i % round_print == 0):
         print('epoch: ', i, 'accuracy: ', round((count_correct / round_print) * 100.0, 2), '%')
         count_correct = 0
@@ -122,13 +113,6 @@ for i in range(epoch):
 
 count_correct = 0
 count_error = 0
-
-## MNIST: SETUP TEST INPUT
-# set_input = np.array([np.reshape(item,(784, 1)) for item in test_images])
-# set_input = set_input/np.amax(set_input)
-# number_input = set_input.shape[0]
-# set_answer = np.zeros((set_input.shape[0], 10, 1))
-# set_answer[range(set_answer.shape[0]), test_labels]=1
 
 ## TEST NEURAL NETWORK
 for i in range(100):
@@ -148,10 +132,6 @@ for i in range(100):
         num_y_guess = Logic_1()
     else:
         num_y_guess = Logic_0()
-
-    ## NMIST CALCULATE ACCURACY
-    # num_y_answer = np.argmax(y_answer, axis=0)
-    # num_y_guess = np.argmax(y_guess, axis=0)
 
     if (num_y_answer == num_y_guess):
         count_correct += 1
