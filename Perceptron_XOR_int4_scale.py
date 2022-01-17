@@ -10,13 +10,18 @@ import numpy as np
 # import matplotlib.pyplot as plt
 
 class NeuralNetwork:
-    def __init__(self, num_input_layer, num_hidden_layer, num_output_layer):
+    def __init__(self, num_input_layer, num_hidden_layer, num_output_layer, max_value):
         self.hidden_weights = np.random.uniform(-1, 1, (num_hidden_layer + 1, num_input_layer  + 1))
         self.output_weights = np.random.uniform(-1, 1, (num_output_layer, num_hidden_layer + 1))
-        
+        self.hidden_weights = np.array([np.round(x*max_value, 0) for x in self.hidden_weights]).astype(int)
+        self.output_weights = np.array([np.round(x*max_value, 0) for x in self.output_weights]).astype(int)
+
 def feedForward (inputs, weights):
-    dot_product = np.dot(weights, inputs)
-    result = sigmoid(dot_product)
+    rows = len(inputs)
+    scale = rows * max_value
+    dp = np.dot(weights, inputs)
+    dp_scale = dp/scale
+    result = ReLU(dp_scale)
     return result
 
 def sigmoid (x):
@@ -68,7 +73,9 @@ number_input = set_input.shape[0]
 number_answer = set_answer.shape[0]
 
 ## SET NN PARAMETERS
-nn = NeuralNetwork (2, 2, 1)
+max_value = 7
+scale = len(set_input[0])
+nn = NeuralNetwork(2, 2, 1, max_value)
 learning_rate = 0.1
 epoch = 100000
 count_correct = 0
