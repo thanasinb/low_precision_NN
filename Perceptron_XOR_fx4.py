@@ -13,12 +13,13 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import collections
 
+fxp_sign = True
 word = 4
 frac = 3
-lim = fxp(0, signed=True, n_word=word, n_frac=frac)
-Logic_1 = fxp(1, signed=True, n_word=word, n_frac=frac, rounding='around')
-Logic_1n = fxp(Logic_1() * (-1), signed=True, n_word=word, n_frac=frac, rounding='around')
-Logic_0 = fxp(0, signed=True, n_word=word, n_frac=frac, rounding='around')
+lim = fxp(0, signed=fxp_sign, n_word=word, n_frac=frac)
+Logic_1 = fxp(1, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
+Logic_1n = fxp(Logic_1() * (-1), signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
+Logic_0 = fxp(0, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
 Logic_half = Logic_1() / 2
 epoch = 1000
 learning_rate = 0.1
@@ -40,17 +41,17 @@ who_02 = collections.deque(np.zeros(epoch))
 
 class NeuralNetwork:
     def __init__(self, num_input_layer, num_hidden_layer, num_output_layer):
-        self.hidden_weights = fxp(np.random.uniform(Logic_0, Logic_1, (num_hidden_layer + 1, num_input_layer + 1)),
-                                  signed=True, n_word=word, n_frac=frac, rounding='around')
-        self.output_weights = fxp(np.random.uniform(Logic_0, Logic_1, (num_output_layer, num_hidden_layer + 1)),
-                                  signed=True, n_word=word, n_frac=frac, rounding='around')
+        self.hidden_weights = fxp(np.random.uniform(Logic_1n, Logic_1, (num_hidden_layer + 1, num_input_layer + 1)),
+                                  signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
+        self.output_weights = fxp(np.random.uniform(Logic_1n, Logic_1, (num_output_layer, num_hidden_layer + 1)),
+                                  signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
 
 
 def feedForward(inputs, weights):
     dot_product = np.dot(weights, inputs)
     # result_act = sigmoid(np.array(dot_product))
     result_act = ReLU(np.array(dot_product))
-    result_fxp = fxp(result_act, signed=True, n_word=word, n_frac=frac, rounding='around')
+    result_fxp = fxp(result_act, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
 
     return result_fxp
 
@@ -77,7 +78,7 @@ t = time.time()
 
 ## XOR INPUT AND OUTPUT
 set_input = np.array([np.matrix('0; 0'), np.matrix('0; 1'), np.matrix('1; 0'), np.matrix('1; 1')])
-set_answer = fxp(np.array([np.matrix('0'), np.matrix('1'), np.matrix('1'), np.matrix('0')]), signed=True, n_word=word,
+set_answer = fxp(np.array([np.matrix('0'), np.matrix('1'), np.matrix('1'), np.matrix('0')]), signed=fxp_sign, n_word=word,
                  n_frac=frac, rounding='around')
 
 number_input = set_input.shape[0]
@@ -126,7 +127,7 @@ for i in range(epoch):
     ## FEEDFORWARD
     input = set_input[idx_input[i]]
     input = np.concatenate((input, [[Logic_1()]]), axis=0)  # ATTACH BIAS
-    input = fxp(input, signed=True, n_word=word, n_frac=frac, rounding='around')
+    input = fxp(input, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
 
     wih_00.popleft()
     wih_01.popleft()
@@ -219,8 +220,8 @@ for i in range(epoch):
 
         output_weights_real = np.add(nn.output_weights(), output_delta)
         hidden_weights_real = np.add(nn.hidden_weights(), hidden_delta)
-        nn.output_weights = fxp(output_weights_real, signed=True, n_word=word, n_frac=frac, rounding='around')
-        nn.hidden_weights = fxp(hidden_weights_real, signed=True, n_word=word, n_frac=frac, rounding='around')
+        nn.output_weights = fxp(output_weights_real, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
+        nn.hidden_weights = fxp(hidden_weights_real, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
 
         # with open("xor.csv", "ab") as f:
         #     f.write(b"Output error\n")
