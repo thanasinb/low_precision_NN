@@ -14,15 +14,15 @@ from matplotlib.animation import FuncAnimation
 import collections
 
 fxp_sign = True
-word = 4
-frac = 3
+word = 12
+frac = 8
 lim = fxp(0, signed=fxp_sign, n_word=word, n_frac=frac)
 Logic_1 = fxp(1, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
 Logic_1n = fxp(Logic_1() * (-1), signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
 Logic_0 = fxp(0, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
 Logic_half = Logic_1() / 2
-epoch = 1000
-learning_rate = 1
+epoch = 100000
+learning_rate = 0.1
 num_hidden = 2
 idx_input = np.random.randint(4, size=epoch)
 
@@ -39,21 +39,25 @@ who_00 = collections.deque(np.zeros(epoch))
 who_01 = collections.deque(np.zeros(epoch))
 who_02 = collections.deque(np.zeros(epoch))
 
+
 class NeuralNetwork:
     def __init__(self, num_input_layer, num_hidden_layer, num_output_layer):
-        self.hidden_weights = fxp(np.random.uniform(Logic_1n, Logic_1, (num_hidden_layer + 1, num_input_layer + 1)),
-                                  signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
-        self.output_weights = fxp(np.random.uniform(Logic_1n, Logic_1, (num_output_layer, num_hidden_layer + 1)),
-                                  signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
+        # self.hidden_weights = fxp(np.random.uniform(Logic_1n, Logic_1, (num_hidden_layer + 1, num_input_layer + 1)),
+        #                           signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
+        # self.output_weights = fxp(np.random.uniform(Logic_1n, Logic_1, (num_output_layer, num_hidden_layer + 1)),
+        #                           signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
+        self.hidden_weights = np.random.uniform(-1, 1, (num_hidden_layer + 1, num_input_layer + 1))  # fp
+        self.output_weights = np.random.uniform(-1, 1, (num_output_layer, num_hidden_layer + 1))  # fp
 
 
 def feedForward(inputs, weights):
     dot_product = np.dot(weights, inputs)
     result_act = sigmoid(np.array(dot_product))
     # result_act = ReLU(np.array(dot_product))
-    result_fxp = fxp(result_act, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
+    # result_fxp = fxp(result_act, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
 
-    return result_fxp
+    return result_act  # fp
+    # return result_fxp # fx
 
 
 def sigmoid(x):
@@ -78,16 +82,17 @@ t = time.time()
 
 ## XOR INPUT AND OUTPUT
 set_input = np.array([np.matrix('0; 0'), np.matrix('0; 1'), np.matrix('1; 0'), np.matrix('1; 1')])
-set_answer = fxp(np.array([np.matrix('0'), np.matrix('1'), np.matrix('1'), np.matrix('0')]), signed=fxp_sign, n_word=word,
-                 n_frac=frac, rounding='around')
+# set_answer = fxp(np.array([np.matrix('0'), np.matrix('1'), np.matrix('1'), np.matrix('0')]), signed=fxp_sign, n_word=word,
+#                  n_frac=frac, rounding='around')
+# set_answer = fxp(np.array([np.matrix('0'), np.matrix('1'), np.matrix('1'), np.matrix('0')]), signed=fxp_sign, n_word=word,
+#                  n_frac=frac, rounding='around')
+set_answer = np.array([np.matrix('0'), np.matrix('1'), np.matrix('1'), np.matrix('0')])  # fp
 
 number_input = set_input.shape[0]
 number_answer = set_answer.shape[0]
 
 ## SET NN PARAMETERS
 nn = NeuralNetwork(2, num_hidden, 1)
-# learning_rate = 5
-# epoch = 1000
 count_correct = 0
 count_error = 0
 count_error_00 = 0
@@ -126,8 +131,9 @@ aho_02.set_facecolor('#DEDEDE')
 for i in range(epoch):
     ## FEEDFORWARD
     input = set_input[idx_input[i]]
-    input = np.concatenate((input, [[Logic_1()]]), axis=0)  # ATTACH BIAS
-    input = fxp(input, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
+    # input = np.concatenate((input, [[Logic_1()]]), axis=0)  # ATTACH BIAS # fx
+    # input = fxp(input, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around') # fx
+    input = np.concatenate((input, [[1]]), axis=0)  # ATTACH BIAS # fp
 
     wih_00.popleft()
     wih_01.popleft()
@@ -142,26 +148,41 @@ for i in range(epoch):
     who_01.popleft()
     who_02.popleft()
 
-    wih_00.append(nn.hidden_weights[0][0]())
-    wih_01.append(nn.hidden_weights[0][1]())
-    wih_02.append(nn.hidden_weights[0][2]())
-    wih_10.append(nn.hidden_weights[1][0]())
-    wih_11.append(nn.hidden_weights[1][1]())
-    wih_12.append(nn.hidden_weights[1][2]())
-    wih_20.append(nn.hidden_weights[2][0]())
-    wih_21.append(nn.hidden_weights[2][1]())
-    wih_22.append(nn.hidden_weights[2][2]())
-    who_00.append(nn.output_weights[0][0]())
-    who_01.append(nn.output_weights[0][1]())
-    who_02.append(nn.output_weights[0][2]())
+    # wih_00.append(nn.hidden_weights[0][0]()) # fx
+    # wih_01.append(nn.hidden_weights[0][1]()) # fx
+    # wih_02.append(nn.hidden_weights[0][2]()) # fx
+    # wih_10.append(nn.hidden_weights[1][0]()) # fx
+    # wih_11.append(nn.hidden_weights[1][1]()) # fx
+    # wih_12.append(nn.hidden_weights[1][2]()) # fx
+    # wih_20.append(nn.hidden_weights[2][0]()) # fx
+    # wih_21.append(nn.hidden_weights[2][1]()) # fx
+    # wih_22.append(nn.hidden_weights[2][2]()) # fx
+    # who_00.append(nn.output_weights[0][0]()) # fx
+    # who_01.append(nn.output_weights[0][1]()) # fx
+    # who_02.append(nn.output_weights[0][2]()) # fx
+
+    wih_00.append(nn.hidden_weights[0][0])  # fp
+    wih_01.append(nn.hidden_weights[0][1])  # fp
+    wih_02.append(nn.hidden_weights[0][2])  # fp
+    wih_10.append(nn.hidden_weights[1][0])  # fp
+    wih_11.append(nn.hidden_weights[1][1])  # fp
+    wih_12.append(nn.hidden_weights[1][2])  # fp
+    wih_20.append(nn.hidden_weights[2][0])  # fp
+    wih_21.append(nn.hidden_weights[2][1])  # fp
+    wih_22.append(nn.hidden_weights[2][2])  # fp
+    who_00.append(nn.output_weights[0][0])  # fp
+    who_01.append(nn.output_weights[0][1])  # fp
+    who_02.append(nn.output_weights[0][2])  # fp
 
     result_hidden = feedForward(input, nn.hidden_weights)
     y_guess = feedForward(result_hidden, nn.output_weights)
-    y_answer = set_answer[i % number_input]
+    y_answer = set_answer[idx_input[i]]
 
     ## XOR CALCULATE ACCURACY
-    num_y_guess = y_guess[0][0]
-    num_y_answer = y_answer()[0][0]
+    # num_y_guess = y_guess[0][0]  # fx
+    # num_y_answer = y_answer()[0][0]  # fx
+    num_y_guess = int(round(y_guess.item(0, 0), 0))  # fp
+    num_y_answer = y_answer.item(0, 0)  # fp
 
     if num_y_guess > Logic_half:
         num_y_guess = 1
@@ -177,8 +198,10 @@ for i in range(epoch):
         count_correct += 1
     else:
         count_error += 1
-        A = input[0][0]()
-        B = input[1][0]()
+        # A = input[0][0]()  # fx
+        # B = input[1][0]()  # fx
+        A = input[0][0]  # fp
+        B = input[1][0]  # fp
         if A == 0 and B == 0:
             count_error_00 += 1
         elif A == 0 and B > Logic_half:
@@ -210,18 +233,26 @@ for i in range(epoch):
         #     f.write(b"\n")
 
         ## BACKPROPAGATION
-        output_error = y_answer() - y_guess()
-        output_delta = np.dot(learning_rate * np.multiply(dSigmoid(y_guess()), output_error), result_hidden().T)
-        # output_delta = np.dot(learning_rate * np.multiply(dReLU(y_guess()), output_error), result_hidden().T)
+        # output_error = y_answer() - y_guess()  # fx
+        output_error = y_answer - y_guess  # fp
+        # output_delta = np.dot(learning_rate * np.multiply(dSigmoid(y_guess()), output_error), result_hidden().T)  # fx
+        # output_delta = np.dot(learning_rate * np.multiply(dReLU(y_guess()), output_error), result_hidden().T)  # Relu
+        output_delta = np.dot(learning_rate * np.multiply(dSigmoid(y_guess), output_error), result_hidden.T)  # fp
 
-        hidden_error = np.dot(nn.output_weights().T, output_error)
-        hidden_delta = np.dot(learning_rate * np.multiply(dSigmoid(result_hidden()), hidden_error), input().T)
+        # hidden_error = np.dot(nn.output_weights().T, output_error)  # fx
+        hidden_error = np.dot(nn.output_weights.T, output_error)  # fp
+
+        # hidden_delta = np.dot(learning_rate * np.multiply(dSigmoid(result_hidden()), hidden_error), input().T)  # fx
         # hidden_delta = np.dot(learning_rate * np.multiply(dReLU(result_hidden()), hidden_error), input().T)
+        hidden_delta = np.dot(learning_rate * np.multiply(dSigmoid(result_hidden), hidden_error), input.T)  # fp
 
-        output_weights_real = np.add(nn.output_weights(), output_delta)
-        hidden_weights_real = np.add(nn.hidden_weights(), hidden_delta)
-        nn.output_weights = fxp(output_weights_real, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
-        nn.hidden_weights = fxp(hidden_weights_real, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around')
+        # output_weights_real = np.add(nn.output_weights(), output_delta) # fx
+        # hidden_weights_real = np.add(nn.hidden_weights(), hidden_delta) # fx
+        # nn.output_weights = fxp(output_weights_real, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around') # fx
+        # nn.hidden_weights = fxp(hidden_weights_real, signed=fxp_sign, n_word=word, n_frac=frac, rounding='around') # fx
+
+        output_weights = np.add(nn.output_weights, output_delta)  # fp
+        hidden_weights = np.add(nn.hidden_weights, hidden_delta)  # fp
 
         # with open("xor.csv", "ab") as f:
         #     f.write(b"Output error\n")
@@ -242,7 +273,7 @@ for i in range(epoch):
         #     np.savetxt(f, nn.output_weights, delimiter=",")
         #     f.write(b"\n")
 
-    if (i == epoch-1):
+    if (i == epoch - 1):
         print('epoch: ', i, 'accuracy: ', round((count_correct / i) * 100.0, 2), '%')
         print('error 00: ', count_error_00)
         print('error 01: ', count_error_01)
