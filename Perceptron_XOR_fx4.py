@@ -20,8 +20,8 @@ Logic_1 = fxp(1, signed=True, n_word=word, n_frac=frac, rounding='around')
 Logic_1n = fxp(Logic_1() * (-1), signed=True, n_word=word, n_frac=frac, rounding='around')
 Logic_0 = fxp(0, signed=True, n_word=word, n_frac=frac, rounding='around')
 Logic_half = Logic_1() / 2
-epoch = 5000
-learning_rate = 4
+epoch = 1000
+learning_rate = 0.1
 num_hidden = 2
 idx_input = np.random.randint(4, size=epoch)
 
@@ -40,15 +40,16 @@ who_02 = collections.deque(np.zeros(epoch))
 
 class NeuralNetwork:
     def __init__(self, num_input_layer, num_hidden_layer, num_output_layer):
-        self.hidden_weights = fxp(np.random.uniform(Logic_1n, Logic_1, (num_hidden_layer + 1, num_input_layer + 1)),
+        self.hidden_weights = fxp(np.random.uniform(Logic_0, Logic_1, (num_hidden_layer + 1, num_input_layer + 1)),
                                   signed=True, n_word=word, n_frac=frac, rounding='around')
-        self.output_weights = fxp(np.random.uniform(Logic_1n, Logic_1, (num_output_layer, num_hidden_layer + 1)),
+        self.output_weights = fxp(np.random.uniform(Logic_0, Logic_1, (num_output_layer, num_hidden_layer + 1)),
                                   signed=True, n_word=word, n_frac=frac, rounding='around')
 
 
 def feedForward(inputs, weights):
     dot_product = np.dot(weights, inputs)
-    result_act = sigmoid(np.array(dot_product))
+    # result_act = sigmoid(np.array(dot_product))
+    result_act = ReLU(np.array(dot_product))
     result_fxp = fxp(result_act, signed=True, n_word=word, n_frac=frac, rounding='around')
 
     return result_fxp
@@ -209,10 +210,12 @@ for i in range(epoch):
 
         ## BACKPROPAGATION
         output_error = y_answer() - y_guess()
-        output_delta = np.dot(learning_rate * np.multiply(dSigmoid(y_guess()), output_error), result_hidden().T)
+        # output_delta = np.dot(learning_rate * np.multiply(dSigmoid(y_guess()), output_error), result_hidden().T)
+        output_delta = np.dot(learning_rate * np.multiply(dReLU(y_guess()), output_error), result_hidden().T)
 
         hidden_error = np.dot(nn.output_weights().T, output_error)
-        hidden_delta = np.dot(learning_rate * np.multiply(dSigmoid(result_hidden()), hidden_error), input().T)
+        # hidden_delta = np.dot(learning_rate * np.multiply(dSigmoid(result_hidden()), hidden_error), input().T)
+        hidden_delta = np.dot(learning_rate * np.multiply(dReLU(result_hidden()), hidden_error), input().T)
 
         output_weights_real = np.add(nn.output_weights(), output_delta)
         hidden_weights_real = np.add(nn.hidden_weights(), hidden_delta)
